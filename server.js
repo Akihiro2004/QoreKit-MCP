@@ -6,8 +6,6 @@ import crypto from 'crypto';
 import path from 'path';
 import fs from 'fs/promises';
 
-// ─── Lazy imports (optional heavy deps) ─────────────────────────────────────
-
 let _sharp = null;
 async function getSharp() {
   if (!_sharp) _sharp = (await import('sharp')).default;
@@ -30,8 +28,6 @@ const server = new Server(
   { name: 'qorekit', version: '1.0.0' },
   { capabilities: { tools: {} } }
 );
-
-// ─── Tool Definitions ────────────────────────────────────────────────────────
 
 const TOOLS = [
   {
@@ -322,7 +318,6 @@ const TOOLS = [
     },
   },
 
-  // ── Image tools (requires sharp) ──────────────────────────────────────────
   {
     name: 'image_info',
     description: 'Read metadata from an image file: format, dimensions, color space, file size, DPI',
@@ -405,7 +400,6 @@ const TOOLS = [
     },
   },
 
-  // ── QR code (requires qrcode) ─────────────────────────────────────────────
   {
     name: 'qr_generate',
     description: 'Generate a QR code for any text or URL. If output_path is provided saves a file (SVG or PNG); otherwise returns the SVG markup directly',
@@ -420,7 +414,6 @@ const TOOLS = [
     },
   },
 
-  // ── PDF tools (requires pdf-lib) ──────────────────────────────────────────
   {
     name: 'pdf_merge',
     description: 'Merge multiple PDF files into a single PDF',
@@ -461,7 +454,6 @@ const TOOLS = [
     },
   },
 
-  // ── Design / CSS helpers (pure JS) ────────────────────────────────────────
   {
     name: 'css_gradient',
     description: 'Generate a CSS gradient string (linear, radial, or conic) from a list of colors',
@@ -506,7 +498,6 @@ const TOOLS = [
   },
 ];
 
-// ─── Implementations ─────────────────────────────────────────────────────────
 
 function base64Encode(text) {
   return Buffer.from(text, 'utf8').toString('base64');
@@ -792,7 +783,6 @@ function billSplit(total, people, tipPercent = 0) {
   ].join('\n');
 }
 
-// Unit conversion: all values normalized to a common base per category
 const UNIT_MAP = {
   // Length (base: meters)
   mm: 0.001, cm: 0.01, m: 1, km: 1000,
@@ -924,7 +914,6 @@ function colorConvert(color) {
   return [`HEX: ${hex}`, `RGB: rgb(${r}, ${g}, ${b})`, `HSL: hsl(${h}, ${s}%, ${l}%)`].join('\n');
 }
 
-// ─── Image / QR / PDF helpers ────────────────────────────────────────────────
 
 function buildOutputPath(inputPath, newExt) {
   const dir  = path.dirname(inputPath);
@@ -1144,8 +1133,6 @@ async function imageToPdf(inputPaths, outputPath) {
   ].join('\n');
 }
 
-// ─── Request Handlers ────────────────────────────────────────────────────────
-
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
 
 server.setRequestHandler(CallToolRequestSchema, async (request) => {
@@ -1205,8 +1192,6 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
     return { content: [{ type: 'text', text: `Error: ${err.message}` }], isError: true };
   }
 });
-
-// ─── Start ───────────────────────────────────────────────────────────────────
 
 const transport = new StdioServerTransport();
 await server.connect(transport);
