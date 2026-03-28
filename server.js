@@ -448,6 +448,19 @@ const TOOLS = [
     },
   },
 
+  {
+    name: 'image_to_pdf',
+    description: 'Convert one or more images (JPEG, PNG, WebP, etc.) into a single PDF file, one image per page',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        input_paths: { type: 'array', items: { type: 'string' }, description: 'Array of absolute image file paths (in order)' },
+        output_path: { type: 'string', description: 'Absolute path for the output PDF (optional)' },
+      },
+      required: ['input_paths'],
+    },
+  },
+
   // ── Design / CSS helpers (pure JS) ────────────────────────────────────────
   {
     name: 'css_gradient',
@@ -1012,7 +1025,7 @@ async function pdfMerge(inputPaths, outputPath) {
   for (const filePath of inputPaths) {
     const bytes = await fs.readFile(filePath);
     const doc   = await PDFDocument.load(bytes);
-    const pages = await merged.copyPagesFrom(doc, doc.getPageIndices());
+    const pages = await merged.copyPages(doc, doc.getPageIndices());
     pages.forEach(p => merged.addPage(p));
   }
   const outBytes = await merged.save();
@@ -1102,6 +1115,35 @@ function colorPaletteGenerate(baseColor, scheme = 'complementary', count = 5) {
   return [`Scheme: ${scheme}`, `Base: hsl(${h}, ${s}%, ${l}%)`, '', ...palette.map((c, i) => `${i + 1}. ${c}`)].join('\n');
 }
 
+async function imageToPdf(inputPaths, outputPath) {
+  const { PDFDocument } = await getPdfLib();
+  const sharp = await getSharp();
+  const doc = await PDFDocument.create();
+  for (const imgPath of inputPaths) {
+    const ext = path.extname(imgPath).toLowerCase().slice(1);
+    let imgBytes, embedded;
+    if (ext === 'png') {
+      imgBytes = await sharp(imgPath).png().toBuffer();
+      embedded = await doc.embedPng(imgBytes);
+    } else {
+      imgBytes = await sharp(imgPath).jpeg().toBuffer();
+      embedded = await doc.embedJpg(imgBytes);
+    }
+    const { width, height } = embedded.scale(1);
+    const page = doc.addPage([width, height]);
+    page.drawImage(embedded, { x: 0, y: 0, width, height });
+  }
+  const outPath = outputPath || buildOutputPath(inputPaths[0], 'pdf');
+  const bytes = await doc.save();
+  await fs.writeFile(outPath, bytes);
+  const stat = await fs.stat(outPath);
+  return [
+    `Converted ${inputPaths.length} image(s) to PDF: ${outPath}`,
+    `Pages: ${doc.getPageCount()}`,
+    `Size: ${(stat.size / 1024).toFixed(2)} KB`,
+  ].join('\n');
+}
+
 // ─── Request Handlers ────────────────────────────────────────────────────────
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
@@ -1148,6 +1190,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       // PDF
       case 'pdf_merge':           result = await pdfMerge(args.input_paths, args.output_path);                    break;
       case 'pdf_watermark':       result = await pdfWatermark(args.input_path, args.text, args.output_path, args.opacity); break;
+      case 'image_to_pdf':        result = await imageToPdf(args.input_paths, args.output_path);                  break;
 
       // Design / CSS
       case 'css_gradient':        result = cssGradient(args.colors, args.type, args.angle);                       break;
