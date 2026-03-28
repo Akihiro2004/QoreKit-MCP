@@ -4,16 +4,28 @@
   "description": "MCP server that gives AI agents access to all QoreKit tools — text, dev, image, PDF, QR code, design, and calculators",
   "type": "module",
   "main": "server.js",
-  "bin": "server.js",
+  "bin": {
+    "qorekit-mcp": "server.js"
+  },
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": ["mcp", "qorekit", "tools", "ai", "claude", "image", "pdf", "qr-code", "utilities"],
+  "keywords": [
+    "mcp",
+    "qorekit",
+    "tools",
+    "ai",
+    "claude",
+    "image",
+    "pdf",
+    "qr-code",
+    "utilities"
+  ],
   "license": "MIT",
   "homepage": "https://www.qorekit.site/mcp",
   "repository": {
     "type": "git",
-    "url": "https://github.com/darrienwijaya/qorekit"
+    "url": "git+https://github.com/darrienwijaya/qorekit.git"
   },
   "engines": {
     "node": ">=18"
