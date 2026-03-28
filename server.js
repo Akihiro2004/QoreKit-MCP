@@ -321,6 +321,176 @@ const TOOLS = [
       required: ['color'],
     },
   },
+
+  // ── Image tools (requires sharp) ──────────────────────────────────────────
+  {
+    name: 'image_info',
+    description: 'Read metadata from an image file: format, dimensions, color space, file size, DPI',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        input_path: { type: 'string', description: 'Absolute path to the image file' },
+      },
+      required: ['input_path'],
+    },
+  },
+  {
+    name: 'image_convert',
+    description: 'Convert an image to a different format (jpeg, png, webp, avif, gif)',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        input_path:  { type: 'string', description: 'Absolute path to the source image' },
+        format:      { type: 'string', enum: ['jpeg', 'png', 'webp', 'avif', 'gif'], description: 'Target format' },
+        output_path: { type: 'string', description: 'Output file path (optional, defaults to same dir with new extension)' },
+      },
+      required: ['input_path', 'format'],
+    },
+  },
+  {
+    name: 'image_resize',
+    description: 'Resize an image to a given width and/or height',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        input_path:  { type: 'string', description: 'Absolute path to the source image' },
+        width:       { type: 'number', description: 'Target width in pixels (optional)' },
+        height:      { type: 'number', description: 'Target height in pixels (optional)' },
+        fit:         { type: 'string', enum: ['cover', 'contain', 'fill', 'inside', 'outside'], description: 'Resize fit strategy (default: cover)' },
+        output_path: { type: 'string', description: 'Output file path (optional)' },
+      },
+      required: ['input_path'],
+    },
+  },
+  {
+    name: 'image_compress',
+    description: 'Compress an image by reducing quality. Returns original vs compressed size',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        input_path:  { type: 'string', description: 'Absolute path to the source image' },
+        quality:     { type: 'number', description: 'Quality 1-100 (default: 80)' },
+        output_path: { type: 'string', description: 'Output file path (optional)' },
+      },
+      required: ['input_path'],
+    },
+  },
+  {
+    name: 'image_rotate',
+    description: 'Rotate an image by a given angle in degrees',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        input_path:  { type: 'string', description: 'Absolute path to the source image' },
+        angle:       { type: 'number', description: 'Rotation angle in degrees (e.g. 90, 180, 270)' },
+        output_path: { type: 'string', description: 'Output file path (optional)' },
+      },
+      required: ['input_path', 'angle'],
+    },
+  },
+  {
+    name: 'image_crop',
+    description: 'Crop a rectangular region from an image',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        input_path:  { type: 'string', description: 'Absolute path to the source image' },
+        left:        { type: 'number', description: 'X offset from left edge in pixels' },
+        top:         { type: 'number', description: 'Y offset from top edge in pixels' },
+        width:       { type: 'number', description: 'Width of the crop region in pixels' },
+        height:      { type: 'number', description: 'Height of the crop region in pixels' },
+        output_path: { type: 'string', description: 'Output file path (optional)' },
+      },
+      required: ['input_path', 'left', 'top', 'width', 'height'],
+    },
+  },
+
+  // ── QR code (requires qrcode) ─────────────────────────────────────────────
+  {
+    name: 'qr_generate',
+    description: 'Generate a QR code for any text or URL. If output_path is provided saves a file (SVG or PNG); otherwise returns the SVG markup directly',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        text:        { type: 'string', description: 'Text or URL to encode' },
+        output_path: { type: 'string', description: 'Optional file path to save. Use .svg or .png extension' },
+        error_level: { type: 'string', enum: ['L', 'M', 'Q', 'H'], description: 'Error correction level (default: M)' },
+      },
+      required: ['text'],
+    },
+  },
+
+  // ── PDF tools (requires pdf-lib) ──────────────────────────────────────────
+  {
+    name: 'pdf_merge',
+    description: 'Merge multiple PDF files into a single PDF',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        input_paths: { type: 'array', items: { type: 'string' }, description: 'Array of absolute paths to PDF files (in order)' },
+        output_path: { type: 'string', description: 'Absolute path for the merged output PDF' },
+      },
+      required: ['input_paths', 'output_path'],
+    },
+  },
+  {
+    name: 'pdf_watermark',
+    description: 'Add a diagonal text watermark to every page of a PDF',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        input_path:  { type: 'string', description: 'Absolute path to the source PDF' },
+        text:        { type: 'string', description: 'Watermark text (e.g. "CONFIDENTIAL")' },
+        output_path: { type: 'string', description: 'Output file path (optional)' },
+        opacity:     { type: 'number', description: 'Watermark opacity 0-1 (default: 0.3)' },
+      },
+      required: ['input_path', 'text'],
+    },
+  },
+
+  // ── Design / CSS helpers (pure JS) ────────────────────────────────────────
+  {
+    name: 'css_gradient',
+    description: 'Generate a CSS gradient string (linear, radial, or conic) from a list of colors',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        colors: { type: 'array', items: { type: 'string' }, description: 'Array of color values (hex, rgb, hsl, or named)' },
+        type:   { type: 'string', enum: ['linear', 'radial', 'conic'], description: 'Gradient type (default: linear)' },
+        angle:  { type: 'number', description: 'Angle in degrees for linear/conic gradients (default: 135)' },
+      },
+      required: ['colors'],
+    },
+  },
+  {
+    name: 'css_box_shadow',
+    description: 'Generate a CSS box-shadow declaration. Supports multiple layers for depth effects',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        x:      { type: 'number', description: 'Horizontal offset in px (default: 0)' },
+        y:      { type: 'number', description: 'Vertical offset in px (default: 4)' },
+        blur:   { type: 'number', description: 'Blur radius in px (default: 16)' },
+        spread: { type: 'number', description: 'Spread radius in px (default: 0)' },
+        color:  { type: 'string', description: 'Shadow color (default: rgba(0,0,0,0.15))' },
+        inset:  { type: 'boolean', description: 'Inner shadow (default: false)' },
+        layers: { type: 'number', description: 'Number of stacked shadow layers for depth (default: 1, max: 4)' },
+      },
+    },
+  },
+  {
+    name: 'color_palette_generate',
+    description: 'Generate a color palette from a base hex color using a color theory scheme',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        base_color: { type: 'string', description: 'Base color in #RRGGBB format' },
+        scheme:     { type: 'string', enum: ['complementary', 'analogous', 'triadic', 'split-complementary', 'tetradic', 'monochromatic'], description: 'Color harmony scheme (default: complementary)' },
+        count:      { type: 'number', description: 'Number of colors to return (default: 5, max: 10)' },
+      },
+      required: ['base_color'],
+    },
+  },
 ];
 
 // ─── Implementations ─────────────────────────────────────────────────────────
@@ -741,6 +911,197 @@ function colorConvert(color) {
   return [`HEX: ${hex}`, `RGB: rgb(${r}, ${g}, ${b})`, `HSL: hsl(${h}, ${s}%, ${l}%)`].join('\n');
 }
 
+// ─── Image / QR / PDF helpers ────────────────────────────────────────────────
+
+function buildOutputPath(inputPath, newExt) {
+  const dir  = path.dirname(inputPath);
+  const base = path.basename(inputPath, path.extname(inputPath));
+  return path.join(dir, `${base}_output.${newExt}`);
+}
+
+async function imageInfo(inputPath) {
+  const sharp = await getSharp();
+  const meta  = await sharp(inputPath).metadata();
+  const stat  = await fs.stat(inputPath);
+  return [
+    `File:        ${inputPath}`,
+    `Format:      ${meta.format}`,
+    `Dimensions:  ${meta.width} x ${meta.height} px`,
+    `Channels:    ${meta.channels}`,
+    `Color space: ${meta.space || 'unknown'}`,
+    `Has alpha:   ${meta.hasAlpha}`,
+    `File size:   ${(stat.size / 1024).toFixed(2)} KB`,
+    meta.density ? `DPI:         ${meta.density}` : null,
+  ].filter(Boolean).join('\n');
+}
+
+async function imageConvert(inputPath, format, outputPath) {
+  const sharp   = await getSharp();
+  const outPath = outputPath || buildOutputPath(inputPath, format);
+  await sharp(inputPath).toFormat(format).toFile(outPath);
+  const stat = await fs.stat(outPath);
+  return `Converted to ${format}: ${outPath}\nSize: ${(stat.size / 1024).toFixed(2)} KB`;
+}
+
+async function imageResize(inputPath, width, height, fit = 'cover', outputPath) {
+  const sharp   = await getSharp();
+  const ext     = path.extname(inputPath).slice(1) || 'jpg';
+  const outPath = outputPath || buildOutputPath(inputPath, ext);
+  const opts    = { fit };
+  if (width)  opts.width  = width;
+  if (height) opts.height = height;
+  await sharp(inputPath).resize(opts).toFile(outPath);
+  const meta = await sharp(outPath).metadata();
+  return `Resized: ${outPath}\nNew dimensions: ${meta.width} x ${meta.height} px`;
+}
+
+async function imageCompress(inputPath, quality = 80, outputPath) {
+  const sharp   = await getSharp();
+  const ext     = path.extname(inputPath).toLowerCase().slice(1);
+  const outPath = outputPath || buildOutputPath(inputPath, ext || 'jpg');
+  const img     = sharp(inputPath);
+  const q       = Math.min(100, Math.max(1, quality));
+  if      (ext === 'png')              await img.png({ quality: q }).toFile(outPath);
+  else if (ext === 'webp')             await img.webp({ quality: q }).toFile(outPath);
+  else if (ext === 'avif')             await img.avif({ quality: q }).toFile(outPath);
+  else                                 await img.jpeg({ quality: q }).toFile(outPath);
+  const origStat = await fs.stat(inputPath);
+  const newStat  = await fs.stat(outPath);
+  const saved    = ((1 - newStat.size / origStat.size) * 100).toFixed(1);
+  return [
+    `Compressed: ${outPath}`,
+    `Original:   ${(origStat.size / 1024).toFixed(2)} KB`,
+    `Output:     ${(newStat.size  / 1024).toFixed(2)} KB`,
+    `Saved:      ${saved}%`,
+  ].join('\n');
+}
+
+async function imageRotate(inputPath, angle, outputPath) {
+  const sharp   = await getSharp();
+  const ext     = path.extname(inputPath).slice(1) || 'jpg';
+  const outPath = outputPath || buildOutputPath(inputPath, ext);
+  await sharp(inputPath).rotate(angle).toFile(outPath);
+  return `Rotated ${angle}deg: ${outPath}`;
+}
+
+async function imageCrop(inputPath, left, top, cropWidth, cropHeight, outputPath) {
+  const sharp   = await getSharp();
+  const ext     = path.extname(inputPath).slice(1) || 'jpg';
+  const outPath = outputPath || buildOutputPath(inputPath, ext);
+  await sharp(inputPath).extract({ left, top, width: cropWidth, height: cropHeight }).toFile(outPath);
+  return `Cropped: ${outPath}\nRegion: ${cropWidth} x ${cropHeight} at (${left}, ${top})`;
+}
+
+async function qrGenerate(text, outputPath, errorLevel = 'M') {
+  const QRCode = await getQrcode();
+  if (outputPath) {
+    if (outputPath.toLowerCase().endsWith('.svg')) {
+      const svg = await QRCode.toString(text, { type: 'svg', errorCorrectionLevel: errorLevel });
+      await fs.writeFile(outputPath, svg, 'utf8');
+    } else {
+      await QRCode.toFile(outputPath, text, { errorCorrectionLevel: errorLevel });
+    }
+    return `QR code saved: ${outputPath}`;
+  }
+  return await QRCode.toString(text, { type: 'svg', errorCorrectionLevel: errorLevel });
+}
+
+async function pdfMerge(inputPaths, outputPath) {
+  const { PDFDocument } = await getPdfLib();
+  const merged = await PDFDocument.create();
+  for (const filePath of inputPaths) {
+    const bytes = await fs.readFile(filePath);
+    const doc   = await PDFDocument.load(bytes);
+    const pages = await merged.copyPagesFrom(doc, doc.getPageIndices());
+    pages.forEach(p => merged.addPage(p));
+  }
+  const outBytes = await merged.save();
+  await fs.writeFile(outputPath, outBytes);
+  const stat = await fs.stat(outputPath);
+  return [
+    `Merged ${inputPaths.length} PDFs: ${outputPath}`,
+    `Total pages: ${merged.getPageCount()}`,
+    `Size: ${(stat.size / 1024).toFixed(2)} KB`,
+  ].join('\n');
+}
+
+async function pdfWatermark(inputPath, text, outputPath, opacity = 0.3) {
+  const { PDFDocument, rgb, degrees } = await getPdfLib();
+  const bytes  = await fs.readFile(inputPath);
+  const doc    = await PDFDocument.load(bytes);
+  const pages  = doc.getPages();
+  for (const page of pages) {
+    const { width, height } = page.getSize();
+    page.drawText(text, {
+      x:       width  / 2 - text.length * 6,
+      y:       height / 2,
+      size:    48,
+      color:   rgb(0.5, 0.5, 0.5),
+      opacity: Math.min(1, Math.max(0, opacity)),
+      rotate:  degrees(45),
+    });
+  }
+  const outPath  = outputPath || buildOutputPath(inputPath, 'pdf');
+  const outBytes = await doc.save();
+  await fs.writeFile(outPath, outBytes);
+  return `Watermarked ${pages.length} page(s): ${outPath}`;
+}
+
+function cssGradient(colors, type = 'linear', angle = 135) {
+  const stops = colors.join(', ');
+  if      (type === 'linear') return `background: linear-gradient(${angle}deg, ${stops});`;
+  else if (type === 'radial') return `background: radial-gradient(circle, ${stops});`;
+  else if (type === 'conic')  return `background: conic-gradient(from ${angle}deg, ${stops});`;
+  throw new Error(`Unknown gradient type: ${type}. Use linear, radial, or conic.`);
+}
+
+function cssBoxShadow({ x = 0, y = 4, blur = 16, spread = 0, color = 'rgba(0,0,0,0.15)', inset = false, layers = 1 } = {}) {
+  const n      = Math.min(Math.max(1, layers), 4);
+  const prefix = inset ? 'inset ' : '';
+  const parts  = Array.from({ length: n }, (_, i) => {
+    const scale = 1 + i * 0.8;
+    return `${prefix}${x}px ${Math.round(y * scale)}px ${Math.round(blur * scale)}px ${spread}px ${color}`;
+  });
+  return `box-shadow: ${parts.join(',\n             ')};`;
+}
+
+function colorPaletteGenerate(baseColor, scheme = 'complementary', count = 5) {
+  const hex  = baseColor.replace('#', '');
+  const full = hex.length === 3 ? hex.split('').map(c => c + c).join('') : hex;
+  const r    = parseInt(full.slice(0, 2), 16);
+  const g    = parseInt(full.slice(2, 4), 16);
+  const b    = parseInt(full.slice(4, 6), 16);
+  const { h, s, l } = rgbToHsl(r, g, b);
+  const n = Math.min(Math.max(1, count), 10);
+
+  let hues;
+  switch (scheme) {
+    case 'complementary':      hues = [h, (h + 180) % 360]; break;
+    case 'analogous':          hues = [h, (h + 30) % 360, (h + 60) % 360, (h + 330) % 360, (h + 300) % 360]; break;
+    case 'triadic':            hues = [h, (h + 120) % 360, (h + 240) % 360]; break;
+    case 'split-complementary':hues = [h, (h + 150) % 360, (h + 210) % 360]; break;
+    case 'tetradic':           hues = [h, (h + 90) % 360, (h + 180) % 360, (h + 270) % 360]; break;
+    case 'monochromatic':      hues = Array.from({ length: n }, () => h); break;
+    default: throw new Error(`Unknown scheme: ${scheme}`);
+  }
+
+  const palette = [];
+  if (scheme === 'monochromatic') {
+    for (let i = 0; i < n; i++) {
+      const newL = Math.round(20 + (i / Math.max(n - 1, 1)) * 60);
+      palette.push(`hsl(${h}, ${s}%, ${newL}%)`);
+    }
+  } else {
+    for (let i = 0; i < n; i++) {
+      const hue  = hues[i % hues.length];
+      const newL = i < hues.length ? l : Math.max(10, Math.min(90, l - 15 + (i * 10)));
+      palette.push(`hsl(${hue}, ${s}%, ${newL}%)`);
+    }
+  }
+
+  return [`Scheme: ${scheme}`, `Base: hsl(${h}, ${s}%, ${l}%)`, '', ...palette.map((c, i) => `${i + 1}. ${c}`)].join('\n');
+}
+
 // ─── Request Handlers ────────────────────────────────────────────────────────
 
 server.setRequestHandler(ListToolsRequestSchema, async () => ({ tools: TOOLS }));
@@ -772,6 +1133,27 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'unit_convert':        result = unitConvert(args.value, args.from, args.to);                           break;
       case 'timestamp_convert':   result = timestampConvert(args.value);                                          break;
       case 'color_convert':       result = colorConvert(args.color);                                              break;
+
+      // Image
+      case 'image_info':          result = await imageInfo(args.input_path);                                      break;
+      case 'image_convert':       result = await imageConvert(args.input_path, args.format, args.output_path);    break;
+      case 'image_resize':        result = await imageResize(args.input_path, args.width, args.height, args.fit, args.output_path); break;
+      case 'image_compress':      result = await imageCompress(args.input_path, args.quality, args.output_path);  break;
+      case 'image_rotate':        result = await imageRotate(args.input_path, args.angle, args.output_path);      break;
+      case 'image_crop':          result = await imageCrop(args.input_path, args.left, args.top, args.width, args.height, args.output_path); break;
+
+      // QR code
+      case 'qr_generate':         result = await qrGenerate(args.text, args.output_path, args.error_level);       break;
+
+      // PDF
+      case 'pdf_merge':           result = await pdfMerge(args.input_paths, args.output_path);                    break;
+      case 'pdf_watermark':       result = await pdfWatermark(args.input_path, args.text, args.output_path, args.opacity); break;
+
+      // Design / CSS
+      case 'css_gradient':        result = cssGradient(args.colors, args.type, args.angle);                       break;
+      case 'css_box_shadow':      result = cssBoxShadow(args);                                                    break;
+      case 'color_palette_generate': result = colorPaletteGenerate(args.base_color, args.scheme, args.count);     break;
+
       default:
         return { content: [{ type: 'text', text: `Unknown tool: ${name}` }], isError: true };
     }
