@@ -24,6 +24,12 @@ async function getPdfLib() {
   return _pdfLib;
 }
 
+let _jsqr = null;
+async function getJsQR() {
+  if (!_jsqr) _jsqr = (await import('jsqr')).default;
+  return _jsqr;
+}
+
 const server = new Server(
   { name: 'qorekit', version: '1.0.0' },
   { capabilities: { tools: {} } }
@@ -397,6 +403,18 @@ const TOOLS = [
         output_path: { type: 'string', description: 'Output file path (optional)' },
       },
       required: ['input_path', 'left', 'top', 'width', 'height'],
+    },
+  },
+
+  {
+    name: 'qr_scan',
+    description: 'Scan and decode a QR code or barcode from an image file. Returns the decoded text content',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        input_path: { type: 'string', description: 'Absolute path to the image file containing the QR code or barcode' },
+      },
+      required: ['input_path'],
     },
   },
 
@@ -1008,6 +1026,18 @@ async function qrGenerate(text, outputPath, errorLevel = 'M') {
   return await QRCode.toString(text, { type: 'svg', errorCorrectionLevel: errorLevel });
 }
 
+async function qrScan(inputPath) {
+  const sharp = await getSharp();
+  const jsQR  = await getJsQR();
+  const { data, info } = await sharp(inputPath)
+    .ensureAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  const result = jsQR(new Uint8ClampedArray(data.buffer), info.width, info.height);
+  if (!result) throw new Error('No QR code found in the image. Make sure the code is clearly visible and not blurry.');
+  return result.data;
+}
+
 async function pdfMerge(inputPaths, outputPath) {
   const { PDFDocument } = await getPdfLib();
   const merged = await PDFDocument.create();
@@ -1172,6 +1202,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'image_crop':          result = await imageCrop(args.input_path, args.left, args.top, args.width, args.height, args.output_path); break;
 
       // QR code
+      case 'qr_scan':             result = await qrScan(args.input_path);                                         break;
       case 'qr_generate':         result = await qrGenerate(args.text, args.output_path, args.error_level);       break;
 
       // PDF
